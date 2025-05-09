@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="tk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSMOS Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="login-page" id="loginPage">
+        <div class="cosmos-login">
+            <h1>🌌 COSMOS Chat</h1>
+            <input type="text" id="username" placeholder="Adyňyzy giriziň...">
+            <button onclick="enterChat()">Giriň</button>
+        </div>
+    </div>
+
+    <div class="chat-page" id="chatPage">
+        <div class="chat-header">
+            <h2>🌠 COSMOS | <span id="displayUsername"></span></h2>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Habar ýazyň..." autocomplete="off">
+            <button onclick="sendMessage()">Ugrat</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+<style>
+  
+body {
+    font-family: Arial, sans-serif;
+    background: #0f0c29;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+.login-page, .chat-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+}
+
+.cosmos-login {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+}
+
+input {
+    padding: 10px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    width: 80%;
+}
+
+button {
+    padding: 10px 20px;
+    background: #6e45e2;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #8f70ff;
+}
+
+.chat-page {
+    display: none;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.chat-header {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    height: 60vh;
+}
+
+.chat-input {
+    display: flex;
+    gap: 10px;
+}
+
+/* Öňki CSS + aşakdaky goşmaça kodlar */
+.chat-messages div {
+    margin: 5px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+.chat-messages strong {
+    color: #8f70ff;
+}
+  
+</style>
+
+<script>
+  
+ // Firebase konfigurasiýa
+const firebaseConfig = {
+    apiKey: "SIZIN_API_KEY",
+    authDomain: "SIZIN_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://SIZIN_PROJECT_ID.firebaseio.com",
+    projectId: "SIZIN_PROJECT_ID",
+    storageBucket: "SIZIN_PROJECT_ID.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+};
+
+// Firebase başlat
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+let username = "";
+
+function enterChat() {
+    username = document.getElementById("username").value;
+    if (username.trim() === "") {
+        alert("Adyňyzy giriziň!");
+        return;
+    }
+
+    document.getElementById("loginPage").style.display = "none";
+    document.getElementById("chatPage").style.display = "flex";
+    document.getElementById("displayUsername").textContent = username;
+
+    // Habarlary diňle
+    database.ref("messages").on("child_added", (snapshot) => {
+        const message = snapshot.val();
+        displayMessage(message.username, message.text);
+    });
+
+    // Enter basylsa habar iber
+    document.getElementById("messageInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMessage();
+    });
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById("messageInput");
+    const message = messageInput.value;
+
+    if (message.trim() === "") return;
+
+    // Firebase-e habar ýaz
+    database.ref("messages").push({
+        username: username,
+        text: message,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    messageInput.value = "";
+}
+
+function displayMessage(username, message) {
+    const chatMessages = document.getElementById("chatMessages");
+    const messageElement = document.createElement("div");
+    messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+} 
+  
+</script>
